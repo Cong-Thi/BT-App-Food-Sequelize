@@ -1,10 +1,29 @@
-const Rate = require("../models/Rate");
+const { AppError } = require("../helpers/error");
+const {Rate, User, Restaurant} = require("../models");
 
 
 const createRate = async (data) => {
     try {
-        const createRate = await Rate.create(data);
-        return createRate;
+        const {userId, resId} = data;
+
+        const user = await User.findByPk(userId)
+        if(!user){
+            throw new AppError(400,"User Not Found")
+        }
+
+        const restaurant = await Restaurant.findByPk(resId)
+        if(!restaurant){
+            throw new AppError(400,"Restaurant Not Found")
+        }
+        
+        console.log(restaurant.__proto__);
+        const hasRated = await restaurant.hasUserRate(user.userId)
+        
+        if(hasRated){
+            throw new AppError(403,"User has rated this restaurant")
+        }
+        const rate = await Rate.create(data);
+        return rate;
     } catch(error) {
         throw error;
     }
@@ -19,7 +38,7 @@ const getRatesByUser = async (userID) => {
         });
 
         if(!user){
-            throw new Error("user not found")
+            throw new AppError(400, "user not found")
         }
 
         const getRatesByUser = await Rate.findAll({
@@ -40,7 +59,7 @@ const getRatesByRes = async (resID) => {
         });
 
         if(!res){
-            throw new Error("restaurant not found")
+            throw new AppError(400, "restaurant not found")
         }
 
         const getRatesByRes = await Rate.findAll({

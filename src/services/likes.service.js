@@ -1,54 +1,37 @@
-const Like = require("../models/Like");
+const { AppError } = require("../helpers/error");
+const {Like, User, Restaurant} = require("../models");
 
 
 const createLike = async (data) => {
     try {
-        const { userId, resId } = data;
+        const {userId, resId} = data
 
-        const isLiked = await Like.findOne({
-            where: {
-                userId,
-                resId
-            }
-        })
-
-        if(isLiked){
-            throw new Error("User đã like nhà hàng này")
+        const user = await User.findByPk(userId)
+        if(!user){
+            throw new AppError(400,"User Not Found")
         }
-        const createLike = await Like.create(data);
-        return createLike;
+
+        const restaurant = await Restaurant.findByPk(resId)
+        if(!restaurant){
+            throw new AppError(400,"Restaurant Not Found")
+        }
+
+        console.log(restaurant.__proto__);
+       
+        const hasLiked = await restaurant.hasUserLike(user.userId);
+ 
+        if (hasLiked) {
+         await restaurant.removeUserLike(user.userId);
+        } else {
+         await restaurant.addUserLike(user.userId);
+        }
+ 
+        return null;
+        
     } catch(error) {
         throw error;
     }
 }
-
-const deleteLike = async (userId, resId) => {
-    try {
-        //const  userId, resId  = data;
-
-        const isUnLike = await Like.findOne({
-            where: {
-                userId,
-                resId
-            }
-        })
-
-        if(!isUnLike){
-            throw new Error("Thông tin này chưa cập nhật")
-        }
-        console.log("hello",isUnLike);
-        await Like.destroy(
-            {where: 
-                {  userId: userId,
-                   resId : resId 
-                }
-         });
-        return "Unlike";
-    } catch(error) {
-        throw error;
-    }
-}
-
 
 const getLikesByUser = async (userID) => {
     try {
@@ -59,7 +42,7 @@ const getLikesByUser = async (userID) => {
         });
 
         if(!user){
-            throw new Error("user not found")
+            throw new AppError(400, "user not found")
         }
 
         const getLikesByUser = await Like.findAll({
@@ -80,7 +63,7 @@ const getLikesByRes = async (resID) => {
         });
 
         if(!res){
-            throw new Error("restaurant not found")
+            throw new AppError(400, "restaurant not found")
         }
 
         const getLikesByRes = await Like.findAll({

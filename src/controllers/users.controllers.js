@@ -1,12 +1,14 @@
+const { response } = require("../helpers/response")
 const userSevice = require("../services/users.service")
 
 const getUsers = () => {
-    return async (req, res) => {
+    return async (req, res, next) => {
         try{
             const users = await userSevice.getUsers();
-            res.status(200).json({data: users})
+            console.log(users);
+            res.status(200).json(response(users))
         } catch(error){
-            res.status(500).json({error:error.message})
+            next(error)
         }        
     };
 };

@@ -1,37 +1,39 @@
-const rateSevice = require("../services/rates.service")
+const { response } = require("../helpers/response");
+const rateService = require("../services/rates.service")
 
 const createRate = () => {
-    return async (req, res) => {
+    return async (req, res, next) => {
         try{
-            const rate = req.body;
-            const createdRate = await rateSevice.createRate(rate);
-            res.status(200).json({data: createdRate});
+            const data = req.body;
+            const createdRate = await rateService.createRate(data);
+            res.status(200).json(response(createdRate));
         } catch(error){
-            res.status(500).json({error:error.message});
+            next(error)
         }
     };
 };
 
 const getRatesByUser = () => {
-    return async (req, res) => {
+    return async (req, res, next) => {
         try{
             const {userId} = req.params;
-            const getRatesByUsers = await rateSevice.getRatesByUser(userId);
-            res.status(200).json({data: getRatesByUsers});
+            console.log(userId);
+            const getRatesByUsers = await rateService.getRatesByUser(userId);
+            res.status(200).json(response(getRatesByUsers));
         } catch(error){
-            res.status(500).json({error:error.message});
+            next(error)
         }
     };
 };
 
 const getRatesByRes = () => {
-    return async (req, res) => {
+    return async (req, res, next) => {
         try{
             const {resId} = req.params;
-            const getRatesByRestaurant = await rateSevice.getRatesByRes(resId);
-            res.status(200).json({data: getRatesByRestaurant});
+            const getRatesByRestaurant = await rateService.getRatesByRes(resId);
+            res.status(200).json(response(getRatesByRestaurant));
         } catch(error){
-            res.status(500).json({error:error.message});
+            next(error)
         }
     };
 };
